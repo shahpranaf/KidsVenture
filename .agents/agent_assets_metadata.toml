@@ -1,0 +1,72 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "OcdOJye6iueva8_03nt1i"
+uri = "file://screenshots/kidventure-01-onboarding.jpg"
+type = "image"
+title = "KidVenture — Onboarding"
+description = "Child profile setup with cartoon buddy selection and interests."
+logical_id = "42f32431-db76-41bc-b76f-380acff507d1"
+content_hash = "sha256:301c17b0644eb6fadd94d214f5b8f282e615d8379d6a466f2a2033230a028f4e"
+size = 40567
+mtime_ms = 1789492550681
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:073faa38-581f-439a-9dd1-fc6a47533113/42f32431-db76-41bc-b76f-380acff507d1/e3681b6a-f6fc-45c7-93bc-0bbb4e1acf7d"
+storage_version_token = "1789492568122257"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "Sit0gnU9qvsh8Y06f4UPZ"
+uri = "file://screenshots/kidventure-02-daily-trail.jpg"
+type = "image"
+title = "KidVenture — Daily Trail"
+description = "The home screen with daily Learn, Create, and Connect missions."
+logical_id = "58071f38-925c-4f72-8b3a-d55ffff8361d"
+content_hash = "sha256:063d7afc7610742d92eac1bba73a916d69ff0c213ebfb5874587b64c4b195a0d"
+size = 51407
+mtime_ms = 1789492552970
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:073faa38-581f-439a-9dd1-fc6a47533113/58071f38-925c-4f72-8b3a-d55ffff8361d/a7fa9b60-22e8-4aef-8467-f52b5e18eae6"
+storage_version_token = "1789492568738570"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "cGwIdcfHixcgFUHRdQuUk"
+uri = "file://screenshots/kidventure-03-mission.jpg"
+type = "image"
+title = "KidVenture — Mission"
+description = "A child opens a creative mission and writes an answer."
+logical_id = "e7fe9247-dcd0-4e41-9722-9f530f4daacb"
+content_hash = "sha256:f4d4509cc70d255b64c2ff5b2c61fba5297fc980dac64298ebc6ef9b12bf3893"
+size = 32238
+mtime_ms = 1789492554990
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:073faa38-581f-439a-9dd1-fc6a47533113/e7fe9247-dcd0-4e41-9722-9f530f4daacb/3b9a3e13-ab4a-4b84-a4f5-cad3d1ce861d"
+storage_version_token = "1789492569350680"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "wQqMD6c7B0pXiBES1D0Ji"
+uri = "file://screenshots/kidventure-04-feedback.jpg"
+type = "image"
+title = "KidVenture — Feedback"
+description = "Warm mission feedback with a new Story Spark badge."
+logical_id = "fd00f27c-ebb8-4b48-87d1-3eb1006f9c75"
+content_hash = "sha256:d59d710336afdd210649f64bafcd32c4a2e3c304b9ad4554edae97c7837972fd"
+size = 32627
+mtime_ms = 1789492557126
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:073faa38-581f-439a-9dd1-fc6a47533113/fd00f27c-ebb8-4b48-87d1-3eb1006f9c75/25b52848-90da-4361-ad7e-c0fe3a1065da"
+storage_version_token = "1789492570003557"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "XM6TY-MbAsMeKyaoBgS_I"
+uri = "file://screenshots/kidventure-05-parent-view.jpg"
+type = "image"
+title = "KidVenture — Parent View"
+description = "Grown-up progress view with skill paths and developmental insights."
+logical_id = "f78b6219-9419-432f-b84d-923a98e2bbe4"
+content_hash = "sha256:ca3059a27ea3f196d1b96757ee4dc82be6011342df13c78913c58bad9d9201da"
+size = 42051
+mtime_ms = 1789492559278
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:073faa38-581f-439a-9dd1-fc6a47533113/f78b6219-9419-432f-b84d-923a98e2bbe4/b80a8050-a4c6-4e56-bbe9-833d44aa8296"
+storage_version_token = "1789492570803802"
+content_type = "image/jpeg"

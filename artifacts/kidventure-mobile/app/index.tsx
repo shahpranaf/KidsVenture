@@ -14,6 +14,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
 import Animated, { FadeInDown, FadeInUp, ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '@/hooks/useColors';
@@ -479,16 +480,18 @@ function MissionDetail({
   profile,
   onBack,
   onComplete,
+  initialState = 'writing',
 }: {
   mission: Mission;
   profile: Profile;
   onBack: () => void;
   onComplete: (pillar: Pillar) => void;
+  initialState?: 'writing' | 'thinking' | 'feedback';
 }) {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const [answer, setAnswer] = useState('');
-  const [state, setState] = useState<'writing' | 'thinking' | 'feedback'>('writing');
+  const [state, setState] = useState<'writing' | 'thinking' | 'feedback'>(initialState);
   const [showHint, setShowHint] = useState(false);
   const completed = profile.completed.includes(mission.pillar);
   const pillarColor = getPillarColor(mission.pillar, colors);
@@ -720,6 +723,7 @@ function ParentDashboard({ profile, onBack }: { profile: Profile; onBack: () => 
 }
 
 export default function KidVentureHome() {
+  const { demo } = useLocalSearchParams<{ demo?: string }>();
   const [screen, setScreen] = useState<Screen>('onboarding');
   const [profile, setProfile] = useState<Profile>(initialProfile);
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
@@ -756,6 +760,32 @@ export default function KidVentureHome() {
     };
     updateProfile(nextProfile);
   };
+
+  const demoProfile: Profile = {
+    name: 'Aarav',
+    age: 9,
+    companion: 'nova',
+    interests: ['Dinosaurs', 'Football', 'Drawing'],
+    completed: ['learn', 'create'],
+    scores: { learn: 76, create: 100, connect: 0 },
+    streak: 4,
+  };
+
+  if (demo === 'onboarding') {
+    return <Onboarding profile={{ ...initialProfile, name: 'Aarav', interests: ['Dinosaurs', 'Football', 'Drawing'] }} setProfile={() => undefined} onStart={() => undefined} />;
+  }
+  if (demo === 'home') {
+    return <Home profile={demoProfile} onMission={() => undefined} onParent={() => undefined} />;
+  }
+  if (demo === 'mission') {
+    return <MissionDetail mission={missions[1]} profile={demoProfile} onBack={() => undefined} onComplete={() => undefined} />;
+  }
+  if (demo === 'feedback') {
+    return <MissionDetail mission={missions[1]} profile={demoProfile} onBack={() => undefined} onComplete={() => undefined} initialState="feedback" />;
+  }
+  if (demo === 'parent') {
+    return <ParentDashboard profile={{ ...demoProfile, completed: ['learn', 'create', 'connect'], scores: { learn: 76, create: 100, connect: 63 }, streak: 5 }} onBack={() => undefined} />;
+  }
 
   if (isLoading) {
     return (
