@@ -70,3 +70,31 @@ mtime_ms = 1789492559278
 storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:073faa38-581f-439a-9dd1-fc6a47533113/f78b6219-9419-432f-b84d-923a98e2bbe4/b80a8050-a4c6-4e56-bbe9-833d44aa8296"
 storage_version_token = "1789492570803802"
 content_type = "image/jpeg"
+
+[[outputs]]
+id = "DHeyJNqezQ94koUCQnWhx"
+uri = "file://exports/kidventure-high-level-design.pdf"
+type = "pdf"
+title = "KidVenture High-Level Design"
+description = "Five-page HLD covering the mobile app, Supabase, OpenAI models, Make.com automation, security boundaries, connected user flows, modules, and build order."
+logical_id = "46e8a3bc-b9a6-4331-9eeb-8d09b1f587e2"
+content_hash = "sha256:24b8577bb6ee4848d54cf44cc718c2432721a3271bd72b5fd75329b2e1af8443"
+size = 1705252
+mtime_ms = 1789492970030
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:073faa38-581f-439a-9dd1-fc6a47533113/46e8a3bc-b9a6-4331-9eeb-8d09b1f587e2/69d6ac6e-16c1-41b6-9507-495793d8a190"
+storage_version_token = "1789492985827501"
+content_type = "application/pdf"
+
+[[outputs]]
+id = "72WTuylQwkz4bVxjs54Mz"
+uri = "file://exports/kidventure-high-level-design-architecture.jpg"
+type = "image"
+title = "KidVenture Architecture Diagram"
+description = "One-page JPG showing the main system connections from the Expo app through Supabase Edge Functions, OpenAI, data storage, automation, and developer tools."
+logical_id = "ef635634-24a3-401e-8318-7eaa01ee16da"
+content_hash = "sha256:2906d9b8588095e494a4c83828f6220b67712e593a4ff1d5d72717e85d2df571"
+size = 351150
+mtime_ms = 1789492972310
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:073faa38-581f-439a-9dd1-fc6a47533113/ef635634-24a3-401e-8318-7eaa01ee16da/395ad0da-2e89-45da-950f-7eefb97127b4"
+storage_version_token = "1789492986527434"
+content_type = "image/jpeg"
