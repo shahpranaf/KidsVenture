@@ -1,0 +1,28 @@
+{
+  "expo": {
+    "name": "KidVenture",
+    "slug": "kidventure-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon_2.png",
+    "scheme": "kidventure-mobile",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": false
+    },
+    "android": {},
+    "web": {
+      "favicon": "./assets/images/icon_2.png"
+    },
+    "splash": {
+      "backgroundColor": "#fff9f0",
+      "image": "./assets/images/icon_2.png",
+      "resizeMode": "contain"
+    },
+    "plugins": ["expo-router"],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}
