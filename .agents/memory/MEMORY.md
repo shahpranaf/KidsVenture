@@ -1,0 +1,1 @@
+- [KidVenture product loop](kidventure-product-loop.md) — keep the app short, parent-guided, and designed to hand off from one meaningful mission to offline family time.
