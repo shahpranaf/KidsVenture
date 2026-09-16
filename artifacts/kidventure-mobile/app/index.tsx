@@ -29,6 +29,12 @@ type Account = {
   childName: string;
 };
 
+type CoachMessage = {
+  id: string;
+  role: 'parent' | 'coach';
+  text: string;
+};
+
 type Profile = {
   name: string;
   age: number;
@@ -46,6 +52,10 @@ type Profile = {
   timerSecondsLeft: number;
   timerRunning: boolean;
   offlineActivitiesCompleted: string[];
+  parentNotes: string[];
+  focusAreas: string[];
+  coachMessages: CoachMessage[];
+  personalizationSummary: string;
 };
 
 type Companion = {
@@ -133,6 +143,10 @@ const initialProfile: Profile = {
   timerSecondsLeft: 15 * 60,
   timerRunning: false,
   offlineActivitiesCompleted: [],
+  parentNotes: [],
+  focusAreas: [],
+  coachMessages: [],
+  personalizationSummary: 'No parent guidance yet. Start with what feels hardest this week.',
 };
 
 const levelRewards = [
@@ -173,6 +187,70 @@ const offlineActivities = [
   },
 ];
 
+function getTailoredMissions(profile: Profile): Mission[] {
+  const focus = profile.focusAreas.join(' ').toLowerCase();
+  const tailored = missions.map((mission) => ({ ...mission }));
+
+  if (focus.includes('confidence') || focus.includes('shy') || focus.includes('anxious')) {
+    tailored[2] = {
+      ...tailored[2],
+      title: 'The Brave Voice Quest',
+      instructions: 'Choose one tiny opinion to share with a trusted grown-up. Say it, draw it, or act it out — your voice can start small.',
+    };
+  }
+  if (focus.includes('focus') || focus.includes('math') || focus.includes('reading') || focus.includes('school')) {
+    tailored[0] = {
+      ...tailored[0],
+      title: 'The Focus Detective Trail',
+      instructions: 'Try a three-step puzzle with one calm reset in the middle. Notice what helps your brain come back when a thought wanders.',
+    };
+  }
+  if (focus.includes('writing') || focus.includes('creative') || focus.includes('ideas')) {
+    tailored[1] = {
+      ...tailored[1],
+      title: 'The Tiny Idea Studio',
+      instructions: 'Make one small idea bigger: give it a character, a surprising detail, and one way it could help someone.',
+    };
+  }
+  if (focus.includes('friend') || focus.includes('sharing') || focus.includes('social')) {
+    tailored[2] = {
+      ...tailored[2],
+      title: 'The Friendship Bridge',
+      instructions: 'Think of one way to invite, include, or listen today. Tell us what made the other person feel part of the team.',
+    };
+  }
+  return tailored;
+}
+
+function buildCoachReply(note: string, profile: Profile) {
+  const text = note.toLowerCase();
+  const focusAreas = [...profile.focusAreas];
+  const addFocus = (value: string) => {
+    if (!focusAreas.includes(value)) focusAreas.push(value);
+  };
+  if (text.includes('confiden') || text.includes('shy') || text.includes('anxious') || text.includes('nervous')) addFocus('confidence');
+  if (text.includes('focus') || text.includes('distract') || text.includes('math') || text.includes('read') || text.includes('school')) addFocus('focus');
+  if (text.includes('write') || text.includes('creative') || text.includes('idea') || text.includes('draw')) addFocus('creative');
+  if (text.includes('friend') || text.includes('share') || text.includes('social') || text.includes('kind')) addFocus('social');
+  if (text.includes('frustrat') || text.includes('angry') || text.includes('patien')) addFocus('emotional regulation');
+  if (focusAreas.length === 0) addFocus('confidence');
+
+  const primary = focusAreas[focusAreas.length - 1];
+  const responseByFocus: Record<string, string> = {
+    confidence: `I’ll make the next Connect mission smaller and safer: one choice, one voice, and no pressure to perform. Look for a tiny brave step rather than a perfect answer.`,
+    focus: `I’ll make the next Learn mission shorter and more reset-friendly. We’ll ask ${profile.name || 'your explorer'} to notice what helps attention return, not just whether they got it right.`,
+    creative: `I’ll give the next Create mission more room for ideas and fewer rules. The goal will be expressing one thought clearly, not making something polished.`,
+    social: `I’ll add more invitations to include and listen. The next Connect mission will turn social practice into one concrete action that can happen offline.`,
+    'emotional regulation': `I’ll use gentle pause-and-name prompts before problem solving. The next mission can help ${profile.name || 'your explorer'} notice a feeling and choose one helpful next step.`,
+  };
+  const summary = `Personalized around ${primary}. ${responseByFocus[primary] ?? 'I’ll keep the next mission concrete, encouraging, and easy to finish in one short sitting.'}`;
+  return {
+    focusAreas: focusAreas.slice(-4),
+    summary,
+    reply: `${summary} I’ll keep the screen window short and end with a parent-child activity.`,
+  };
+}
+
 function getLevel(stars: number) {
   return Math.min(5, Math.max(1, 1 + Math.floor(stars / 6)));
 }
@@ -193,6 +271,10 @@ function normalizeProfile(profile: Partial<Profile>): Profile {
     rewardName: profile.rewardName ?? initialProfile.rewardName,
     timerSecondsLeft: profile.timerSecondsLeft ?? 15 * 60,
     timerRunning: false,
+    parentNotes: profile.parentNotes ?? [],
+    focusAreas: profile.focusAreas ?? [],
+    coachMessages: profile.coachMessages ?? [],
+    personalizationSummary: profile.personalizationSummary ?? initialProfile.personalizationSummary,
   };
 }
 
@@ -593,8 +675,9 @@ function Home({
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const selectedCompanion = companions.find((item) => item.id === profile.companion) ?? companions[0];
+  const tailoredMissions = getTailoredMissions(profile);
   const completedCount = profile.completed.length;
-  const progress = Math.round((completedCount / missions.length) * 100);
+  const progress = Math.round((completedCount / tailoredMissions.length) * 100);
   const companionColor = getCompanionColor(selectedCompanion, colors);
 
   return (
@@ -622,7 +705,7 @@ function Home({
             <View>
               <Text style={[styles.progressEyebrow, { color: colors.accent }]}>TODAY’S TRAIL</Text>
               <Text style={[styles.progressTitle, { color: colors.primaryForeground }]}>
-                {completedCount === 3 ? 'Trail complete!' : `${3 - completedCount} missions to go`}
+                {completedCount === tailoredMissions.length ? 'Trail complete!' : `${tailoredMissions.length - completedCount} missions to go`}
               </Text>
             </View>
             <View style={[styles.streakBadge, { backgroundColor: colors.accent }]}>
@@ -680,7 +763,7 @@ function Home({
         </View>
 
         <View style={styles.missionList}>
-          {missions.map((mission, index) => {
+          {tailoredMissions.map((mission, index) => {
             const completed = profile.completed.includes(mission.pillar);
             const pillarColor = getPillarColor(mission.pillar, colors);
             return (
@@ -738,6 +821,16 @@ function Home({
           </View>
           <Ionicons name="chevron-forward" size={20} color={colors.navy} />
         </Pressable>
+
+        {profile.focusAreas.length > 0 ? (
+          <View style={[styles.personalizationStrip, { backgroundColor: colors.sky, borderColor: colors.border }]}>
+            <Ionicons name="sparkles-outline" size={19} color={colors.primary} />
+            <View style={styles.personalizationCopy}>
+              <Text style={[styles.personalizationTitle, { color: colors.navy }]}>Family Coach tuned this trail</Text>
+              <Text style={[styles.personalizationText, { color: colors.navy }]}>{profile.personalizationSummary}</Text>
+            </View>
+          </View>
+        ) : null}
 
         <View style={[styles.helperStrip, { backgroundColor: colors.mint }]}>
           <Image source={mascot} style={styles.helperImage} resizeMode="contain" />
@@ -1165,6 +1258,32 @@ function ParentDashboard({
     { label: 'Story Spark', icon: 'color-wand-outline' as const, earned: profile.completed.includes('create'), color: colors.create },
     { label: 'Kindness Captain', icon: 'heart-outline' as const, earned: profile.completed.includes('connect'), color: colors.connect },
   ];
+  const [coachInput, setCoachInput] = useState('');
+  const [coachBusy, setCoachBusy] = useState(false);
+  const coachMessages = profile.coachMessages.length > 0
+    ? profile.coachMessages
+    : [{ id: 'welcome', role: 'coach' as const, text: `Tell me what feels hard for ${profile.name || 'your child'} right now. I’ll tune the next missions around it.` }];
+
+  const sendCoachNote = () => {
+    const note = coachInput.trim();
+    if (!note || coachBusy) return;
+    setCoachBusy(true);
+    const result = buildCoachReply(note, profile);
+    const nextMessages: CoachMessage[] = [
+      ...profile.coachMessages,
+      { id: `${Date.now()}-parent`, role: 'parent', text: note },
+      { id: `${Date.now()}-coach`, role: 'coach', text: result.reply },
+    ];
+    onSaveSettings({
+      parentNotes: [...profile.parentNotes, note].slice(-8),
+      focusAreas: result.focusAreas,
+      personalizationSummary: result.summary,
+      coachMessages: nextMessages.slice(-12),
+    });
+    setCoachInput('');
+    setCoachBusy(false);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  };
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.cream }]}>
@@ -1196,6 +1315,58 @@ function ParentDashboard({
               ? 'The first mission is ready whenever your explorer is.'
               : `${profile.name} has completed ${profile.completed.length} mission${profile.completed.length === 1 ? '' : 's'} and earned ${profile.completed.length * 3} stars.`}
           </Text>
+        </View>
+
+        <Text style={[styles.sectionTitleLarge, { color: colors.navy }]}>Family Coach</Text>
+        <View style={[styles.coachCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <View style={styles.coachHeading}>
+            <View style={[styles.coachIcon, { backgroundColor: colors.lavender }]}>
+              <Ionicons name="chatbubbles-outline" size={22} color={colors.create} />
+            </View>
+            <View style={styles.coachHeadingCopy}>
+              <Text style={[styles.coachTitle, { color: colors.navy }]}>Shape the next adventure</Text>
+              <Text style={[styles.coachSubtitle, { color: colors.mutedForeground }]}>Share a pain point, suggestion, or small win.</Text>
+            </View>
+          </View>
+          <View style={[styles.coachThread, { backgroundColor: colors.cream }]}>
+            {coachMessages.slice(-4).map((message) => (
+              <View key={message.id} style={[styles.coachBubble, { backgroundColor: message.role === 'parent' ? colors.navy : colors.mint, alignSelf: message.role === 'parent' ? 'flex-end' : 'flex-start' }]}>
+                <Text style={[styles.coachBubbleLabel, { color: message.role === 'parent' ? colors.accent : colors.primary }]}>
+                  {message.role === 'parent' ? 'YOU' : 'FAMILY COACH'}
+                </Text>
+                <Text style={[styles.coachBubbleText, { color: message.role === 'parent' ? colors.primaryForeground : colors.navy }]}>{message.text}</Text>
+              </View>
+            ))}
+          </View>
+          {profile.focusAreas.length > 0 ? (
+            <View style={styles.focusTagRow}>
+              {profile.focusAreas.map((area) => (
+                <View key={area} style={[styles.focusTag, { backgroundColor: colors.sky }]}>
+                  <Text style={[styles.focusTagText, { color: colors.navy }]}>{area}</Text>
+                </View>
+              ))}
+            </View>
+          ) : null}
+          <View style={[styles.coachInputRow, { borderColor: colors.border, backgroundColor: colors.cream }]}>
+            <TextInput
+              testID="input-parent-coach"
+              value={coachInput}
+              onChangeText={setCoachInput}
+              placeholder="e.g. Math homework causes frustration..."
+              placeholderTextColor={colors.mutedForeground}
+              multiline
+              maxLength={300}
+              style={[styles.coachInput, { color: colors.navy }]}
+            />
+            <Pressable
+              testID="button-send-coach-note"
+              onPress={sendCoachNote}
+              style={[styles.coachSend, { backgroundColor: coachInput.trim() && !coachBusy ? colors.primary : colors.muted }]}
+            >
+              <Ionicons name={coachBusy ? 'hourglass-outline' : 'arrow-up'} size={19} color={coachInput.trim() && !coachBusy ? colors.primaryForeground : colors.mutedForeground} />
+            </Pressable>
+          </View>
+          <Text style={[styles.coachDisclaimer, { color: colors.mutedForeground }]}>This is guidance, not a diagnosis. For serious concerns, speak with a qualified professional.</Text>
         </View>
 
         <Text style={[styles.sectionTitleLarge, { color: colors.navy }]}>Family guardrails</Text>
@@ -1414,6 +1585,13 @@ export default function KidVentureHome() {
     timerSecondsLeft: 12 * 60,
     timerRunning: false,
     offlineActivitiesCompleted: ['kitchen-lab'],
+    parentNotes: ['Math homework causes frustration and confidence dips.'],
+    focusAreas: ['focus', 'confidence'],
+    coachMessages: [
+      { id: 'demo-parent', role: 'parent', text: 'Math homework causes frustration and confidence dips.' },
+      { id: 'demo-coach', role: 'coach', text: 'I’ll make the next Learn mission shorter and more reset-friendly, with a tiny brave step instead of a perfect answer.' },
+    ],
+    personalizationSummary: 'Personalized around confidence. I’ll make the next Learn mission shorter and more reset-friendly.',
   };
 
   if (demo === 'onboarding') {
@@ -1729,4 +1907,25 @@ const styles = StyleSheet.create({
   rewardInput: { minHeight: 44, borderRadius: 13, borderWidth: 1, paddingHorizontal: 12, fontFamily: 'Inter_400Regular', fontSize: 12 },
   signOutButton: { minHeight: 45, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, marginTop: 13 },
   signOutText: { fontFamily: 'Inter_600SemiBold', fontSize: 12 },
+  personalizationStrip: { flexDirection: 'row', alignItems: 'flex-start', gap: 9, borderRadius: 17, borderWidth: 1, padding: 13, marginTop: 13 },
+  personalizationCopy: { flex: 1 },
+  personalizationTitle: { fontFamily: 'Inter_700Bold', fontSize: 12, marginBottom: 3 },
+  personalizationText: { fontFamily: 'Inter_400Regular', fontSize: 11, lineHeight: 16 },
+  coachCard: { borderRadius: 20, borderWidth: 1, padding: 14, marginBottom: 26 },
+  coachHeading: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+  coachIcon: { width: 43, height: 43, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
+  coachHeadingCopy: { flex: 1 },
+  coachTitle: { fontFamily: 'Inter_700Bold', fontSize: 14, marginBottom: 3 },
+  coachSubtitle: { fontFamily: 'Inter_400Regular', fontSize: 11 },
+  coachThread: { borderRadius: 15, padding: 9, gap: 8, marginBottom: 10 },
+  coachBubble: { maxWidth: '89%', borderRadius: 14, paddingHorizontal: 11, paddingVertical: 9 },
+  coachBubbleLabel: { fontFamily: 'Inter_700Bold', fontSize: 8, letterSpacing: 1, marginBottom: 4 },
+  coachBubbleText: { fontFamily: 'Inter_500Medium', fontSize: 12, lineHeight: 17 },
+  focusTagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 10 },
+  focusTag: { borderRadius: 10, paddingHorizontal: 8, paddingVertical: 5 },
+  focusTagText: { fontFamily: 'Inter_600SemiBold', fontSize: 10 },
+  coachInputRow: { minHeight: 48, borderRadius: 14, borderWidth: 1, flexDirection: 'row', alignItems: 'center', paddingLeft: 11, paddingRight: 6 },
+  coachInput: { flex: 1, minHeight: 42, maxHeight: 80, fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 17, paddingVertical: 8 },
+  coachSend: { width: 35, height: 35, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  coachDisclaimer: { fontFamily: 'Inter_400Regular', fontSize: 9, lineHeight: 13, marginTop: 8 },
 });
