@@ -1238,11 +1238,13 @@ function ParentDashboard({
   profile,
   onBack,
   onSaveSettings,
+  onCoachNote,
   onSignOut,
 }: {
   profile: Profile;
   onBack: () => void;
   onSaveSettings: (settings: Partial<Profile>) => void;
+  onCoachNote: (note: string) => Promise<void>;
   onSignOut: () => void;
 }) {
   const colors = useColors();
@@ -1268,21 +1270,12 @@ function ParentDashboard({
     const note = coachInput.trim();
     if (!note || coachBusy) return;
     setCoachBusy(true);
-    const result = buildCoachReply(note, profile);
-    const nextMessages: CoachMessage[] = [
-      ...profile.coachMessages,
-      { id: `${Date.now()}-parent`, role: 'parent', text: note },
-      { id: `${Date.now()}-coach`, role: 'coach', text: result.reply },
-    ];
-    onSaveSettings({
-      parentNotes: [...profile.parentNotes, note].slice(-8),
-      focusAreas: result.focusAreas,
-      personalizationSummary: result.summary,
-      coachMessages: nextMessages.slice(-12),
-    });
-    setCoachInput('');
-    setCoachBusy(false);
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    onCoachNote(note)
+      .then(() => {
+        setCoachInput('');
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      })
+      .finally(() => setCoachBusy(false));
   };
 
   return (
@@ -1568,6 +1561,57 @@ export default function KidVentureHome() {
     AsyncStorage.multiRemove([ACCOUNT_KEY, STORAGE_KEY]);
   };
 
+  const saveCoachNote = async (note: string) => {
+    const localResult = buildCoachReply(note, profile);
+    const fallbackMessages: CoachMessage[] = [
+      ...profile.coachMessages,
+      { id: `${Date.now()}-parent`, role: 'parent', text: note },
+      { id: `${Date.now()}-coach`, role: 'coach', text: localResult.reply },
+    ];
+    try {
+      const domain = process.env.EXPO_PUBLIC_DOMAIN;
+      if (!domain) throw new Error('API domain is not configured');
+      const response = await fetch(`https://${domain}/api/gemini/family-coach`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          note,
+          child: {
+            name: profile.name,
+            age: profile.age,
+            interests: profile.interests,
+            completed: profile.completed,
+            scores: profile.scores,
+            focusAreas: profile.focusAreas,
+          },
+        }),
+      });
+      if (!response.ok) throw new Error(`Family Coach request failed: ${response.status}`);
+      const result = (await response.json()) as { reply?: string; summary?: string; focusAreas?: string[] };
+      const nextMessages: CoachMessage[] = [
+        ...profile.coachMessages,
+        { id: `${Date.now()}-parent`, role: 'parent', text: note },
+        { id: `${Date.now()}-coach`, role: 'coach', text: result.reply || localResult.reply },
+      ];
+      updateProfile({
+        ...profile,
+        parentNotes: [...profile.parentNotes, note].slice(-8),
+        focusAreas: result.focusAreas?.slice(0, 4) ?? localResult.focusAreas,
+        personalizationSummary: result.summary || localResult.summary,
+        coachMessages: nextMessages.slice(-12),
+      });
+      return;
+    } catch {
+      updateProfile({
+        ...profile,
+        parentNotes: [...profile.parentNotes, note].slice(-8),
+        focusAreas: localResult.focusAreas,
+        personalizationSummary: localResult.summary,
+        coachMessages: fallbackMessages.slice(-12),
+      });
+    }
+  };
+
   const demoProfile: Profile = {
     name: 'Aarav',
     age: 9,
@@ -1607,7 +1651,7 @@ export default function KidVentureHome() {
     return <MissionDetail mission={missions[1]} profile={demoProfile} onBack={() => undefined} onComplete={() => undefined} initialState="feedback" />;
   }
   if (demo === 'parent') {
-    return <ParentDashboard profile={{ ...demoProfile, completed: ['learn', 'create', 'connect'], scores: { learn: 76, create: 100, connect: 63 }, streak: 5 }} onBack={() => undefined} onSaveSettings={() => undefined} onSignOut={() => undefined} />;
+    return <ParentDashboard profile={{ ...demoProfile, completed: ['learn', 'create', 'connect'], scores: { learn: 76, create: 100, connect: 63 }, streak: 5 }} onBack={() => undefined} onSaveSettings={() => undefined} onCoachNote={async () => undefined} onSignOut={() => undefined} />;
   }
   if (demo === 'timer') {
     return <TimerScreen profile={demoProfile} onBack={() => undefined} onSave={() => undefined} />;
@@ -1654,6 +1698,7 @@ export default function KidVentureHome() {
         profile={profile}
         onBack={() => setScreen('home')}
         onSaveSettings={(settings) => updateProfile({ ...profile, ...settings })}
+        onCoachNote={saveCoachNote}
         onSignOut={signOut}
       />
     );

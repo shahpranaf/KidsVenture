@@ -9,6 +9,6 @@ KidVenture is intentionally built around a short digital-to-real-life loop: a pa
 
 **How to apply:** Keep new features aligned to short missions, visible parent guardrails, experience-based rewards, age-appropriate content for ages 6–10, and an explicit offline handoff.
 
-For the current local-first MVP, parent feedback is stored on-device and converted into focus areas with a deterministic coach fallback; provider-backed AI should be added only through a server-side integration when a provider credential is available.
+Parent feedback is stored on-device and sent to a server-side Gemini coach when the configured provider is available; the deterministic local coach remains the fallback.
 
-**Why:** Managed AI setup required an account upgrade and the user declined providing a provider key, so the parent feedback loop must remain useful without pretending that local heuristics are an LLM.
+**Why:** The app must remain useful offline and must never pretend that local heuristics are an LLM; keeping the fallback also protects the short parent-child loop when the provider is unavailable.
